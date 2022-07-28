@@ -1,0 +1,40 @@
+---
+- name: setup tomcat
+  hosts: all
+  become: true
+
+  tasks:
+    - name: install java on Redhat
+      yum:
+        name: java
+        state: installed
+      when: ansible_os_family == "RedHat"
+
+    - name: install java on ubuntu
+      apt:
+        name: default-jdk
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Download tomcat package
+      get_url:
+        url: https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.65/bin/apache-tomcat-9.0.65.tar.gz 
+        dest: /opt
+
+    - name: extract tomcat
+      unarchive:
+        src: /opt/apache-tomcat-9.0.65.tar.gz
+        dest: /opt
+        remote_src: yes
+
+    - name: add executable permissions to startup.sh file
+      file:
+        path: /opt/apache-tomcat-9.0.65/bin/startup.sh
+        mode: 0777
+
+    - name: start tomcat service
+      shell: nohup ./startup.sh
+      args:
+        chdir: /opt/apache-tomcat-9.0.65/bin   
+
+
